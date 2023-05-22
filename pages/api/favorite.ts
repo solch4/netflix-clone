@@ -20,7 +20,7 @@ export default async function handler(
 
       if (!existingMovie) throw new Error("Invalid ID");
 
-      const user = prismadb.user.update({
+      const user = await prismadb.user.update({
         where: {
           email: currentUser.email || undefined,
         },
@@ -36,19 +36,23 @@ export default async function handler(
 
     if (req.method === "DELETE") {
       const { currentUser } = await serverAuth(req, res);
-      const { movieId } = req.body;
+      const { movieId } = req.query;
+      const stringMovieId = String(movieId);
 
       const existingMovie = await prismadb.movie.findUnique({
         where: {
-          id: movieId,
+          id: stringMovieId,
         },
       });
 
       if (!existingMovie) throw new Error("Invalid ID");
 
-      const updatedFavoriteIds = without(currentUser.favoriteIds, movieId);
+      const updatedFavoriteIds = without(
+        currentUser.favoriteIds,
+        stringMovieId
+      );
 
-      const updatedUser = prismadb.user.update({
+      const updatedUser = await prismadb.user.update({
         where: {
           email: currentUser.email || undefined,
         },
